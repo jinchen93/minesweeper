@@ -13,7 +13,7 @@ class Tile
   end
 
   def reveal
-    @visible = true
+    @visible = true unless flagged?
   end
 
   def bombed?
@@ -26,6 +26,10 @@ class Tile
 
   def flagged?
     @flagged
+  end
+
+  def fringe?
+    @value > 0
   end
 
   def increment_value
@@ -49,6 +53,6 @@ class Tile
   end
 
   def neighbor_bomb_count
-    bombed? ? 0 : @value 
+    bombed? ? 0 : @value
   end
 end

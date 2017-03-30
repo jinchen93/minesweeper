@@ -1,5 +1,6 @@
 require_relative 'tile'
 require 'colorize'
+require 'byebug'
 
 class Board
   attr_reader :grid
@@ -8,8 +9,15 @@ class Board
     Array.new(size) { Array.new(size) { Tile.new } }
   end
 
+  def self.custom_board(bomb_postions)
+    new_board = self.new(empty_board)
+    new_board.place_multiple_bombs(bomb_postions)
+    new_board
+  end
+
   def initialize(grid = Board.empty_board)
     @grid = grid
+    self.place_random_bombs
   end
 
   def [](pos)
@@ -24,11 +32,17 @@ class Board
     end
   end
 
+  def place_multiple_bombs(positions)
+    positions.each { |pos| place_bomb(pos) }
+  end
+
   def place_random_bombs(num = 10)
     until num_bombs == num
       rand_pos = get_random_pos
       place_bomb(rand_pos) unless self[rand_pos].bombed?
     end
+
+    num
   end
 
   def get_random_pos
@@ -46,6 +60,17 @@ class Board
       end
     end
     result
+  end
+
+  def num_unrevealed_positions
+    count = 0
+    (0...9).each do |row|
+      (0...9).each do |col|
+        pos = [row, col]
+        count += 1 unless self[pos].visible?
+      end
+    end
+    count
   end
 
   def num_bombs
@@ -67,7 +92,7 @@ class Board
         tile.reveal
       end
     end
-    true
+    render
   end
 
   def neighbors(pos)
@@ -83,9 +108,29 @@ class Board
     results
   end
 
+  def recursive_reveal(pos)
+    return if self[pos].visible?
+
+    self[pos].reveal
+    unless self[pos].fringe?
+      neighbors(pos).each do |nei_pos|
+        recursive_reveal(nei_pos)
+      end
+    end
+  end
+
   def valid_pos?(pos)
     pos.is_a?(Array) &&
       pos.length == 2 &&
       pos.all? { |x| (0..8).cover?(x) }
+  end
+
+  def edge_pos?(pos)
+    row, col = pos
+    row == 0 || row == 8 || col == 0 || col == 8
+  end
+
+  def only_bombs?
+    num_bombs == num_unrevealed_positions
   end
 end
