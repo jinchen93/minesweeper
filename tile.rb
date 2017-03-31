@@ -6,14 +6,23 @@ class Tile
     bomb ? @value = -1 : @value = 0
     @flagged = false
     @visible = false
+
+    @old_color = nil
+    @color = :black
   end
 
   def toggle_flag
     @flagged = !flagged
+    @color = :red if @flagged
   end
 
   def reveal
     @visible = true unless flagged?
+    if bombed?
+      @color = :red
+    elsif fringe?
+      @color = :blue
+    end
   end
 
   def bombed?
@@ -43,16 +52,28 @@ class Tile
   def to_s
     if visible?
       if bombed?
-        "b".colorize(:red)
+        str = "b"
       else
-        @value == 0 ? "_" : @value.to_s.colorize(:blue)
+        str = @value == 0 ? "_" : @value.to_s
       end
     else
-      flagged? ? "F" : "*"
+      str = flagged? ? "F" : "*"
     end
+    str.colorize(@color)
+  end
+
+  def turn_on_cursor
+    @old_color = @color
+    @color = :green
+  end
+
+  def turn_off_cursor
+    @color = @old_color
+    @old_color = nil
   end
 
   def neighbor_bomb_count
     bombed? ? 0 : @value
   end
+
 end

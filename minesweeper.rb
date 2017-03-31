@@ -8,15 +8,16 @@ class MinesweeperGame
   def initialize(board = Board.new)
     @board = board
     @revealed_bomb = false
-    @cursor = [0,0]
+    @cursor = [0, 0]
   end
 
-  def run
-    board.render
-    play_turn until over?
-
-    board.reveal_all
-  end
+  # def run
+  #   board.render
+  #   play_turn until over?
+  #
+  #   board.reveal_all
+  #   puts won? ? "You win!" : "You lose!"
+  # end
 
   def play_turn
     turn_type = get_type_of_turn
@@ -28,8 +29,6 @@ class MinesweeperGame
       board[pos].toggle_flag
     end
     board.render
-
-    puts won? ? "You win!" : "You lose!"
   end
 
   def get_type_of_turn
@@ -54,6 +53,59 @@ class MinesweeperGame
     end
 
     pos
+  end
+
+  def cursor_move
+    loop do
+      pos = @cursor.dup
+      board[pos].toggle_cursor
+
+      system('clear')
+      board.render
+      get_cursor_move
+      board[pos].toggle_cursor
+    end
+  end
+
+  def run
+    until over?
+      pos = @cursor.dup
+      board[pos].turn_on_cursor
+
+      system('clear')
+      board.render
+
+      c = read_char #get keystroke
+
+      if c.start_with?("\e")
+        parse_cursor_move(c)
+      elsif c == "f"
+        board[pos].toggle_flag
+      elsif c == " "
+        board.recursive_reveal(pos)
+        @revealed_bomb = true if board[pos].bombed?
+      elsif c == "q"
+        break
+      end
+    end
+
+    board.reveal_all
+    puts won? ? "You win!" : "You lose!"
+  end
+
+  def parse_cursor_move(c)
+    board[@cursor].turn_off_cursor
+
+    case c
+    when "\e[A"
+      @cursor[0] = (@cursor[0] - 1) % 9
+    when "\e[B"
+      @cursor[0] = (@cursor[0] + 1) % 9
+    when "\e[C"
+      @cursor[1] = (@cursor[1] + 1) % 9
+    when "\e[D"
+      @cursor[1] = (@cursor[1] - 1) % 9
+    end
   end
 
   def parse_pos(string)
