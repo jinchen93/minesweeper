@@ -87,11 +87,7 @@ class Board
   end
 
   def reveal_all
-    grid.each do |row|
-      row.each do |tile|
-        tile.reveal
-      end
-    end
+    grid.each { |row| row.each(&:reveal) }
     render
   end
 

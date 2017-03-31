@@ -1,5 +1,6 @@
 require_relative 'board'
 require_relative 'tile'
+require_relative 'keypress'
 
 class MinesweeperGame
   attr_reader :board
@@ -7,6 +8,7 @@ class MinesweeperGame
   def initialize(board = Board.new)
     @board = board
     @revealed_bomb = false
+    @cursor = [0,0]
   end
 
   def run
@@ -26,6 +28,8 @@ class MinesweeperGame
       board[pos].toggle_flag
     end
     board.render
+
+    puts won? ? "You win!" : "You lose!"
   end
 
   def get_type_of_turn
@@ -57,7 +61,15 @@ class MinesweeperGame
   end
 
   def over?
-    @revealed_bomb || board.only_bombs?
+    won? || lost?
+  end
+
+  def won?
+    board.only_bombs?
+  end
+
+  def lost?
+    @revealed_bomb
   end
 
 end
